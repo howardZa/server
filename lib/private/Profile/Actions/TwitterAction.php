@@ -25,7 +25,9 @@
 namespace OC\Profile\Actions;
 
 use function Safe\substr;
+use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\L10N\IFactory;
 use OCP\Profile\IProfileAction;
 
@@ -33,6 +35,9 @@ class TwitterAction implements IProfileAction {
 
 	/** @var string */
 	private $value;
+
+	/** @var IAccountManager */
+	private $accountManager;
 
 	/** @var IFactory */
 	private $l10nFactory;
@@ -47,14 +52,21 @@ class TwitterAction implements IProfileAction {
 	 * @param IURLGenerator $urlGenerator
 	 */
 	public function __construct(
+		IAccountManager $accountManager,
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator
 	) {
+		$this->accountManager = $accountManager;
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 	}
 
-	public function getName(): string {
+	public function preload(IUser $user): void {
+		$account = $this->accountManager->getAccount($user);
+		$this->value = $account->getProperty(IAccountManager::PROPERTY_TWITTER);
+	}
+
+	public function getId(): string {
 		return 'twitter';
 	}
 
@@ -78,9 +90,5 @@ class TwitterAction implements IProfileAction {
 	public function getTarget(): string {
 		$username = $this->value[0] === '@' ? substr($this->value, 1) : $this->value;
 		return 'https://twitter.com/' . $username;
-	}
-
-	public function setValue(string $value): string {
-		return $this->value = $value;
 	}
 }

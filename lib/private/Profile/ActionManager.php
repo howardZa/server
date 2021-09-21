@@ -24,8 +24,17 @@
 
 namespace OC\Profile;
 
+
+use function Safe\uasort;
+use InvalidArgumentException;
+use OC\Profile\Actions\EmailAction;
+use OCP\IUser;
 use OCP\Profile\IActionManager;
+use OCP\Profile\IProfileAction;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * @since 23
@@ -35,32 +44,87 @@ class ActionManager implements IActionManager {
 	/** @var ContainerInterface */
 	private $container;
 
+	/** @var LoggerInterface */
+	private $logger;
+
+	/** @var IProfileAction[] */
+	private $actions = [];
+
+	/** @var string[] */
+	private $actionQueue = [];
+
+	/** @var string[] */
+	private $serverActionQueue = [
+		EmailAction::class,
+		PhoneAction::class,
+		WebsiteAction::class,
+		TwitterAction::class,
+	];
+
 	public function __construct(
-		ContainerInterface $container
+		ContainerInterface $container,
+		LoggerInterface $logger
 	) {
 		$this->container = $container;
-	}
-
-	/** @var array */
-	protected $actions = [];
-
-	/**
-	 * @inheritDoc
-	 */
-	public function registerAction(string $action, string $value): void {
-		$action = $this->container->get($action);
-		$action->setValue($value);
-		$this->actions[] = $action;
+		$this->logger = $logger;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function getActions(): array {
-		$actionsCopy = $this->actions;
-		usort($actionsCopy, function ($a, $b) {
-			return $a->getPriority() < $b->getPriority() ? -1 : 1;
+	public function queueAction(string $actionClass): void {
+		$this->actionQueue[] = $actionClass;
+	}
+
+	/**
+	 * Register a new action for the user profile page
+	 */
+	private function registerAction(IProfileAction $action): void {
+		if (array_key_exists($action->getId(), $this->actions)) {
+			throw new InvalidArgumentException('Profile action with this id has already been registered');
+		}
+
+		$this->actions[$action->getId()] = $action;
+	}
+
+	private function loadActions(IUser $user): void {
+		$queuedActions = array_merge($this->serverActionQueue, $this->actionQueue);
+
+		foreach ($queuedActions as $actionClass) {
+			try {
+				/** @var IProfileAction $action */
+				$action = $this->container->get($actionClass);
+				if (!($action instanceof IProfileAction)) {
+					$this->logger->error("$actionClass is not an IProfileAction instance");
+				}
+				$action->preload($user);
+				$this->registerAction($action);
+			} catch (NotFoundExceptionInterface | ContainerExceptionInterface $e) {
+				$this->logger->error(
+					"Could not load profile action class: $actionClass",
+					[
+						'exception' => $e,
+					]
+				);
+			}
+		}
+
+		// Action registration complete, empty the action queues
+		$this->serverActionQueue = [];
+		$this->actionQueue = [];
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getActions(IUser $user): array {
+		$this->loadActions($user);
+
+		$actionsClone = $this->actions;
+		uasort($actionsClone, function (IProfileAction $a, IProfileAction $b) {
+			// sort by ascending priority
+			return $a->getPriority() === $b->getPriority() ? 0 : ($a->getPriority() < $b->getPriority() ? -1 : 1);
 		});
-		return $actionsCopy;
+		return $actionsClone;
 	}
 }

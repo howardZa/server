@@ -65,7 +65,7 @@
 						:href="primaryAction.target"
 						:icon="primaryAction.icon"
 						:label="primaryAction.title"
-						:target="primaryAction.name === 'phone' ? '_self' :'_blank'">
+						:target="primaryAction.id === 'phone' ? '_self' :'_blank'">
 						{{ primaryAction.label }}
 					</PrimaryActionButton>
 					<div class="user-actions__other">
@@ -85,7 +85,7 @@
 								:close-after-click="true"
 								:icon="action.icon"
 								:href="action.target"
-								:target="action.name === 'phone' ? '_self' :'_blank'">
+								:target="action.id === 'phone' ? '_self' :'_blank'">
 								{{ action.title }}
 							</ActionLink>
 						</Actions>
@@ -96,7 +96,7 @@
 								<ActionLink
 									:close-after-click="true"
 									:href="action.target"
-									:target="action.name === 'phone' ? '_self' :'_blank'"
+									:target="action.id === 'phone' ? '_self' :'_blank'"
 									:class="{ 'icon-invert': colorMainBackground === '#181818' }"
 									:icon="action.icon">
 									{{ action.title }}

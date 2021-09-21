@@ -73,29 +73,6 @@ class ProfileController extends Controller {
 	/** @var KnownUserService */
 	private $knownUserService;
 
-	public function __construct(
-		$appName,
-		IRequest $request,
-		IAccountManager $accountManager,
-		IActionManager $actionManager,
-		IAppManager $appManager,
-		IInitialState $initialStateService,
-		IUserManager $userManager,
-		IUserSession $userSession,
-		IUserStatusManager $userStatusManager,
-		KnownUserService $knownUserService
-	) {
-		parent::__construct($appName, $request);
-		$this->accountManager = $accountManager;
-		$this->actionManager = $actionManager;
-		$this->appManager = $appManager;
-		$this->initialStateService = $initialStateService;
-		$this->userManager = $userManager;
-		$this->userSession = $userSession;
-		$this->userStatusManager = $userStatusManager;
-		$this->knownUserService = $knownUserService;
-	}
-
 	public const PROFILE_DISPLAY_PROPERTIES = [
 		IAccountManager::PROPERTY_DISPLAYNAME,
 		IAccountManager::PROPERTY_ADDRESS,
@@ -123,6 +100,29 @@ class ProfileController extends Controller {
 		IAccountManager::PROPERTY_WEBSITE,
 		IAccountManager::PROPERTY_TWITTER,
 	];
+
+	public function __construct(
+		$appName,
+		IRequest $request,
+		IAccountManager $accountManager,
+		IActionManager $actionManager,
+		IAppManager $appManager,
+		IInitialState $initialStateService,
+		IUserManager $userManager,
+		IUserSession $userSession,
+		IUserStatusManager $userStatusManager,
+		KnownUserService $knownUserService
+	) {
+		parent::__construct($appName, $request);
+		$this->accountManager = $accountManager;
+		$this->actionManager = $actionManager;
+		$this->appManager = $appManager;
+		$this->initialStateService = $initialStateService;
+		$this->userManager = $userManager;
+		$this->userSession = $userSession;
+		$this->userStatusManager = $userStatusManager;
+		$this->knownUserService = $knownUserService;
+	}
 
 	/**
 	 * @PublicPage
@@ -254,7 +254,8 @@ class ProfileController extends Controller {
 
 	protected function initActions(IAccount $account) {
 		$isLoggedIn = $this->userSession->isLoggedIn();
-		$userId = $account->getUser()->getUID();
+		$user = $account->getUser();
+		$userId = $user->getUID();
 		$talkEnabled = $this->appManager->isEnabledForUser('spreed', $account->getUser());
 		// $talkEnabled = false;
 
@@ -294,14 +295,14 @@ class ProfileController extends Controller {
 		return array_map(
 			function (IProfileAction $action) {
 				return [
-					'name' => $action->getName(),
+					'id' => $action->getId(),
 					'icon' => $action->getIcon(),
 					'title' => $action->getTitle(),
 					'label' => $action->getLabel(),
 					'target' => $action->getTarget(),
 				];
 			},
-			$this->actionManager->getActions()
+			$this->actionManager->getActions($user)
 		);
 	}
 }

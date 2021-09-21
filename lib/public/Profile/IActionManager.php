@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2021 John Molakvoæ <skjnldsv@protonmail.com>
+ * @copyright 2021 Christopher Ng <chrng8@gmail.com>
  *
- * @author John Molakvoæ <skjnldsv@protonmail.com>
+ * @author Christopher Ng <chrng8@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -26,22 +26,24 @@ declare(strict_types=1);
 
 namespace OCP\Profile;
 
+use OCP\IUser;
+
 /**
  * @since 23
  */
 interface IActionManager {
 
 	/**
-	 * Register a new action for the user profile page
+	 * Queue a new action for registration
 	 *
 	 * @since 23
 	 */
-	public function registerAction(string $action, string $value): void;
+	public function queueAction(string $actionClass): void;
 
 	/**
-	 * Returns the list of all registered profile actions
+	 * Returns an array of all registered profile actions for the user
 	 *
 	 * @since 23
 	 */
-	public function getActions(): array;
+	public function getActions(IUser $user): array;
 }

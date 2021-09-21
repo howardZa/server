@@ -24,45 +24,56 @@
 
 namespace OCP\Profile;
 
+use OCP\IUser;
+
 /**
  * @since 23
  */
 interface IProfileAction {
-	/**
-	 * returns the unique name of the action,
-	 * e.g. 'email'
-	 *
-	 * @return string
-	 * @since 23
-	 */
-	public function getName(): string;
 
 	/**
-	 * returns the translated title as it should be displayed,
-	 * e.g. 'Mail john@domain.com'. Use the L10N service to translate it.
+	 * preload the user specific value required by the action
+	 * e.g. an email is loaded for the email action or userId for Talk
 	 *
-	 * @return string
+	 * @since 23
+	 */
+	public function preload(IUser $user): void;
+
+	/**
+	 * returns the unique ID of the action
+	 * e.g. 'email'
+	 *
+	 * @since 23
+	 */
+	public function getId(): string;
+
+	/**
+	 * returns the translated title as it should be displayed
+	 * e.g. 'Mail john@domain.com'
+	 *
+	 * use the L10N service to translate it
+	 *
 	 * @since 23
 	 */
 	public function getTitle(): string;
 
 	/**
-	 * returns the translated label as it should be displayed,
-	 * e.g. 'Mail'. Use the L10N service to translate it.
+	 * returns the translated label as it should be displayed
+	 * e.g. 'Mail'
 	 *
-	 * @return string
+	 * use the L10N service to translate it
+	 *
 	 * @since 23
 	 */
 	public function getLabel(): string;
 
 	/**
-	 * returns the priority as an integer between 0 and 99.
+	 * returns the priority as an integer
 	 *
-	 * The actions are arranged in ascending order.
+	 * the actions are sorted in ascending order
 	 *
 	 * e.g. 60
 	 *
-	 * @return int
 	 * @since 23
 	 */
 	public function getPriority(): int;
@@ -70,7 +81,6 @@ interface IProfileAction {
 	/**
 	 * returns the 16*16 SVG icon URL
 	 *
-	 * @returns string
 	 * @since 23
 	 */
 	public function getIcon(): string;
@@ -79,18 +89,7 @@ interface IProfileAction {
 	 * returns the target of the action
 	 * e.g. 'mailto:john@domain.com'
 	 *
-	 * @returns string
 	 * @since 23
 	 */
 	public function getTarget(): string;
-
-	/**
-	 * set the action value
-	 * e.g. `john@domain.com` for email
-	 * or the userId for talk.
-	 *
-	 * @return string
-	 * @since 23
-	 */
-	public function setValue(string $value): string;
 }

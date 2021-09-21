@@ -24,7 +24,9 @@
 
 namespace OC\Profile\Actions;
 
+use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\L10N\IFactory;
 use OCP\Profile\IProfileAction;
 
@@ -32,6 +34,9 @@ class PhoneAction implements IProfileAction {
 
 	/** @var string */
 	private $value;
+
+	/** @var IAccountManager */
+	private $accountManager;
 
 	/** @var IFactory */
 	private $l10nFactory;
@@ -46,14 +51,21 @@ class PhoneAction implements IProfileAction {
 	 * @param IURLGenerator $urlGenerator
 	 */
 	public function __construct(
+		IAccountManager $accountManager,
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator
 	) {
+		$this->accountManager = $accountManager;
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 	}
 
-	public function getName(): string {
+	public function preload(IUser $user): void {
+		$account = $this->accountManager->getAccount($user);
+		$this->value = $account->getProperty(IAccountManager::PROPERTY_PHONE);
+	}
+
+	public function getId(): string {
 		return 'phone';
 	}
 
@@ -75,9 +87,5 @@ class PhoneAction implements IProfileAction {
 
 	public function getTarget(): string {
 		return 'tel:' . $this->value;
-	}
-
-	public function setValue(string $value): string {
-		return $this->value = $value;
 	}
 }
