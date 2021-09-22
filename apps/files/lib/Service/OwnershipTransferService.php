@@ -368,7 +368,7 @@ class OwnershipTransferService {
 			$finalTarget = $finalTarget . '/' . basename($sourcePath);
 		}
 		if ($view->rename($sourcePath, $finalTarget) === false) {
-			throw new TransferOwnershipException("Could not transfer files.", 1);
+			throw new TransferOwnershipException("Could not transfer all the files.", 1);
 		}
 		if (!is_dir("$sourceUid/files")) {
 			// because the files folder is moved away we need to recreate it
